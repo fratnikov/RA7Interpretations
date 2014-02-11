@@ -233,7 +233,7 @@ TGraph* makeCurve (TH2D* hist, double scale = 0.19) {
 TGraph* makeCurveUp (TH2D* hist, 
 		     int binXfirst, int binXlast, int binYfirst, int binYlast, 
 		     double scale) {
-  bool verbose = false;
+  bool verbose = true;
   double logScale = log(scale);
   int binsX = hist->GetNbinsX();
   int binsY = hist->GetNbinsY();

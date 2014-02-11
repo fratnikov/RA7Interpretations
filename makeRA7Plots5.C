@@ -92,7 +92,8 @@ bool getGraphs = false;
 int canvasX=800;
 int canvasY=600;
 double scaleXsection = 1.;
-double plotZoom = 1;
+double plotZoomX = 1;
+double plotZoomY = 1;
 double cleanOffset = 0;
 int maxXbin = 99;
 double xsecMin;
@@ -156,7 +157,8 @@ void printGraphs (const char* outFile) {
 
 void reset () {
   scaleXsection = 1.;
-  plotZoom = 1;
+  plotZoomX = 1;
+  plotZoomY = 1;
   cleanOffset = 0;
   maxXbin = 99;
   xsecMin = 0;
@@ -272,16 +274,19 @@ void makeObjects (const string option) {
 
 
   double xMin = xSecObserved->GetXaxis()->GetBinCenter (1);
-  double xMax = xSecObserved->GetXaxis()->GetBinCenter (int(xSecObserved->GetXaxis()->GetNbins()/plotZoom));
+  double xMax = xSecObserved->GetXaxis()->GetBinCenter (int(xSecObserved->GetXaxis()->GetNbins()/plotZoomX));
   double yMin = xSecObserved->GetYaxis()->GetBinCenter (1);
-  double yMax = xSecObserved->GetYaxis()->GetBinCenter (int(xSecObserved->GetYaxis()->GetNbins()/plotZoom))*canvasY/canvasX*1.1;
+  double yMax = xSecObserved->GetYaxis()->GetBinCenter (int(xSecObserved->GetYaxis()->GetNbins()/plotZoomY));
+  //double yMax = xSecObserved->GetYaxis()->GetBinCenter (int(xSecObserved->GetYaxis()->GetNbins()/plotZoomY))*canvasY/canvasX*1.1;
   //double yMax = xSecObserved->GetYaxis()->GetBinCenter (int(xSecObserved->GetYaxis()->GetNbins()/plotZoom));
   hFrame = new TH2F ("hFrame", "", 2, xMin, xMax, 1, yMin, yMax);
 
 
-//   cout << "set : " << xMin<<':'<<xMax<<'/'<<yMin<<':'<<yMax<<endl;
-//   cout << "actual" << hFrame->GetXaxis()->GetXmin()<<':'<<hFrame->GetXaxis()->GetXmax()
-//        <<'/'<<hFrame->GetYaxis()->GetXmin()<<':'<<hFrame->GetYaxis()->GetXmax()<<endl;
+   cout << "orig: " << xSecObserved->GetXaxis()->GetXmin()<<':'<<xSecObserved->GetXaxis()->GetXmax()
+        <<'/'<<xSecObserved->GetYaxis()->GetXmin()<<':'<<xSecObserved->GetYaxis()->GetXmax()<<endl;
+   cout << "set : " << xMin<<':'<<xMax<<'/'<<yMin<<':'<<yMax<<endl;
+   cout << "actual" << hFrame->GetXaxis()->GetXmin()<<':'<<hFrame->GetXaxis()->GetXmax()
+        <<'/'<<hFrame->GetYaxis()->GetXmin()<<':'<<hFrame->GetYaxis()->GetXmax()<<endl;
 
   hFrame->UseCurrentStyle();
   hFrame->SetStats(false);
@@ -436,12 +441,14 @@ TCanvas* drawRA7Plots () {
 
   
 
-  TLatex *   cmsHeader = new TLatex(xMin + 0.05*(xMax-xMin), yMax + 0.04*(yMax-yMin),
+  TLatex *   cmsHeader = new TLatex(xMin + 0.5*(xMax-xMin), yMax + 0.01*(yMax-yMin),
        //	 "CMS Preliminary                    #sqrt{s} = 8 TeV, L_{int} = 9.2 fb^{-1}");
 				    //  "CMS Preliminary                    #sqrt{s} = 8 TeV, L_{int} = 18.1 fb^{-1}");
-  "CMS Preliminary                    L_{int} = 19.5 fb^{-1}, #sqrt{s} = 8 TeV");
+				    //"CMS Preliminary                    L_{int} = 19.5 fb^{-1}, #sqrt{s} = 8 TeV");
+  "CMS          #sqrt{s} = 8 TeV         L = 19.5 fb^{-1}");
   cmsHeader->SetTextFont(42);
   cmsHeader->SetTextSize(0.038);
+  cmsHeader->SetTextAlign(20);
   
   TPaveText *processText = new TPaveText(xMin+0.05*(xMax-xMin), yMin + 0.63*(yMax-yMin), 
 					 xMin+0.25*(xMax-xMin), yMin + 0.99*(yMax-yMin), 
@@ -476,7 +483,7 @@ TCanvas* drawRA7Plots () {
   diagonal->SetLineStyle(2);
 
   double xmh = xMin + 0.07*(xMax-xMin);
-  double ymh = xmh - diagonalOffset + 0.08*(yMax-yMin);
+  double ymh = xmh - diagonalOffset + 0.01*(yMax-yMin);
   TLatex* mhierarchy = 0;
   if (massLabel) {
     mhierarchy = new TLatex(xmh, ymh, massLabel);
@@ -484,6 +491,7 @@ TCanvas* drawRA7Plots () {
     mhierarchy->SetTextSize(0.04);
     mhierarchy->SetTextColor(kBlack);
     mhierarchy->SetTextAngle (massAngle);
+    mhierarchy->SetTextAlign (10);
   }
   
   TBox* fadeBox = new TBox (xMin, yMin+0.62*(yMax-yMin), xMax, yMax);
@@ -574,7 +582,8 @@ TCanvas* makeRA7Plot (const std::string& option, bool extGraphs = false) {
   if (option.find ("wz")  != string::npos) {
     draw2sigma = true;
     scaleXsection = 1;
-    plotZoom = 450./400.;
+    plotZoomX = 450./399.;
+    plotZoomY = 300./250.;
     cleanOffset = 0;
     maxXbin = 27;
     xsecMin = 50;
@@ -626,7 +635,6 @@ TCanvas* makeRA7Plot (const std::string& option, bool extGraphs = false) {
   if (option.find ("wh")  != string::npos) {
     draw2sigma = false;
     scaleXsection = 1;
-    plotZoom = 400./400.;
     cleanOffset = 0;
     maxXbin = 27;
     xsecMin = 50;
@@ -658,10 +666,13 @@ TCanvas* makeRA7Plot (const std::string& option, bool extGraphs = false) {
     bool bss = option.find ("ss") != string::npos;
     bool b3l = option.find ("3l") != string::npos;
     scaleXsection = b2i ? 0.5 : 1;
-    plotZoom = bss ? 
+    plotZoomX = bss ? 
       b2i || b2a ? 800./600. : 800./350. 
-      //      : b2i || b2a ? 1000./800. : 1000./350.;
-      : b2i || b2a ? 800./800. : 500./500.;
+      : b2i || b2a ? 800./780. : 500./500.;
+    plotZoomY =  bss ? 
+      b2i || b2a ? 800./600. : 800./350. 
+      : b2i ? 800./750. : b2a ? 800./600. : 400./300.;
+
     cleanOffset = b2i && b05 ? 0 : 0;
     maxXbin = 99;
     xsecMin = b2i || b2a ? 0.5 : 5;
@@ -754,7 +765,7 @@ TCanvas* makeRA7Plot (const std::string& option, bool extGraphs = false) {
     massLabel = "m_{#scale[1.2]{#tilde{#chi}_{1}^{#pm}}} > m_{#scale[1.2]{#tilde{#chi}_{1}^{0}}}";
     xslepLabel = "m_{ #scale[1.2]{#tilde{#font[12]{l}}}} = m_{ #scale[1.2]{#tilde{#font[12]{#nu}}}} = 0.5m_{#scale[1.2]{#tilde{#chi}_{1}^{#pm}}} + 0.5m_{#scale[1.2]{#tilde{#chi}_{1}^{0}}},  (#font[12]{l} = e, #mu, #tau)";
     diagonalOffset = 0;
-    //logSmoothBypass = true;
+    logSmoothBypass = true;
     makeObjects (option);
     //PrependGraph (observed, 180, 0);
     //observed->SetPoint (observed->GetN(), 450, 0);
@@ -768,20 +779,25 @@ TCanvas* makeRA7Plot (const std::string& option, bool extGraphs = false) {
 //     expectedP1->RemovePoint(0);
     result = drawRA7Plots ();
   }
-   else if (option == "slep") {
+   else if (option == "slepl" || option == "slepr") {
+     bool slepL = (option == "slepl");
     cleanOffset = 51;
     xsecMin = 1;
     xsecMax = 100;
-    file12 = "hists/TSlepSlep.root";
-    processText1 = "#it{pp} #rightarrow #tilde{#font[12]{e}}_{L} #tilde{#font[12]{e}}_{L},  #tilde{#mu}_{L} #tilde{#mu}_{L}";
-    processText2 = "#it{Br}(#tilde{#font[12]{l}}_{L} #rightarrow #font[12]{l} #tilde{#chi}_{1}^{0}) = 1";
+    file12 = slepL ? "hists/TSlepLSlepL.root" : "hists/TSlepRSlepR.root";
+    processText1 = slepL ? 
+      "#it{pp} #rightarrow #tilde{#font[12]{e}}_{L} #tilde{#font[12]{e}}_{L},  #tilde{#mu}_{L} #tilde{#mu}_{L}" :
+      "#it{pp} #rightarrow #tilde{#font[12]{e}}_{R} #tilde{#font[12]{e}}_{R},  #tilde{#mu}_{R} #tilde{#mu}_{R}"; 
+    processText2 = slepL ? 
+      "#it{Br}(#tilde{#font[12]{l}}_{L} #rightarrow #font[12]{l} #tilde{#chi}_{1}^{0}) = 1"
+      : "#it{Br}(#tilde{#font[12]{l}}_{R} #rightarrow #font[12]{l} #tilde{#chi}_{1}^{0}) = 1";
     labelX = "m_{ #scale[1.2]{#tilde{#font[12]{l}}}}  (GeV)";
     labelY = "m_{#scale[1.2]{#tilde{#chi}_{1}^{0}}}  (GeV)";
     label12 = "Observed #pm 1#sigma_{theory}";
     labelExpected = "Expected #pm1#sigma_{experiment}";
     //massLabel = "m_{ #scale[1.2]{#tilde{#font[12]{l}}}} > m_{#scale[1.2]{#tilde{#chi}_{1}^{0}}}";
     diagonalOffset = 0;
-    //logSmoothBypass = true;
+    logSmoothBypass = true;
     makeObjects (option);
 //     PrependGraph (observed, 112.5, 0);
 //     PrependGraph (observedp, 112.5, 0);
@@ -826,7 +842,8 @@ void makeRA7EPS() {
 }
 
 void makeRA7PDF() {
-  makeRA7Plot ("wz")->SaveAs ("newfiles/exclusion_TChiWZ.pdf");
+  makeRA7Plot ("wz", true)->SaveAs ("newfiles/exclusion_TChiWZ.pdf");
+  makeRA7Plot ("wh", true)->SaveAs ("newfiles/exclusion_TChiWH.pdf");
   //makeRA7Plot ("wz_hig")->SaveAs ("newfiles/exclusion_TChiWZ_hig.pdf");
   makeRA7Plot ("2i_0.5")->SaveAs ("newfiles/exclusion_TChiSlepSnu_2i_0_5.pdf");
   makeRA7Plot ("2i_0.05")->SaveAs ("newfiles/exclusion_TChiSlepSnu_2i_0_05.pdf");
@@ -836,7 +853,8 @@ void makeRA7PDF() {
   makeRA7Plot ("2a_0.95")->SaveAs ("newfiles/exclusion_TChiSlepSnu_2a_0_95.pdf");
   makeRA7Plot ("2b_0.5")->SaveAs ("newfiles/exclusion_TChiStauSnu_0_5.pdf");
   makeRA7Plot ("chipm")->SaveAs ("newfiles/exclusion_TChipmSlepSnu.pdf");
-  makeRA7Plot ("slep")->SaveAs ("newfiles/exclusion_TSlepSlep.pdf");
+  makeRA7Plot ("slepl")->SaveAs ("newfiles/exclusion_TSlepSlepL.pdf");
+  makeRA7Plot ("slepr")->SaveAs ("newfiles/exclusion_TSlepSlepR.pdf");
 }
 
 void makeRA7Root(bool extGraphs = false) {

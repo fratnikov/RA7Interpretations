@@ -125,8 +125,9 @@ void makeGMSB ()
   myleg->AddEntry(gTheory,"#sigma^{NLO} #pm 1 #sigma","lf");
   myleg->Draw();
 
-  TLatex *   tex = new TLatex(115, 12,
-			      "CMS Preliminary   #sqrt{s} = 8 TeV, L_{int} = 19.5 fb^{-1}");
+  TLatex *   tex = new TLatex(150, 12,
+			      // "CMS Preliminary   #sqrt{s} = 8 TeV, L_{int} = 19.5 fb^{-1}");
+  "CMS          #sqrt{s} = 8 TeV         L = 19.5 fb^{-1}");
   tex->SetTextFont(42);
   tex->SetTextSize(0.04);
   tex->Draw();
